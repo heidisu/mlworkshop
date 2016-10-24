@@ -1,6 +1,5 @@
 package no.kantega.mlworkshop.plotters;
 
-import org.knowm.xchart.SwingWrapper;
 import org.knowm.xchart.XYChart;
 import org.knowm.xchart.XYChartBuilder;
 import org.knowm.xchart.XYSeries;
@@ -9,13 +8,16 @@ import org.knowm.xchart.style.Styler;
 import java.awt.*;
 import java.util.List;
 
-public class ScatterPlotter {
+public class ScatterPlotter extends AbstractPlotter<XYChart>{
+    private List<Series> series;
+    private List<Color> colors;
 
-    public void plot(List<Series> series, Color[] colors){
-        new SwingWrapper<>(getChart(series, colors)).displayChart();
+    public ScatterPlotter(List<Series> series, List<Color> colors){
+        this.series = series;
+        this.colors = colors;
     }
 
-    private XYChart getChart(List<Series> series, Color[] colors){
+    protected XYChart getChart(){
         // Create Chart
         XYChart chart = new XYChartBuilder().width(800).height(600).build();
 
@@ -25,26 +27,13 @@ public class ScatterPlotter {
         chart.getStyler().setLegendPosition(Styler.LegendPosition.InsideSW);
         chart.getStyler().setMarkerSize(10);
         if(colors != null) {
-            chart.getStyler().setSeriesColors(colors);
+            chart.getStyler().setSeriesColors((Color[]) colors.toArray());
         }
         for(Series s : series){
             chart.addSeries(s.name, s.xValues, s.yValues);
         }
 
         return chart;
-    }
-
-
-    public static class Series{
-        String name;
-        List<Double> xValues;
-        List<Double> yValues;
-
-        public Series(String name, List<Double> xValues, List<Double> yValues) {
-            this.name = name;
-            this.xValues = xValues;
-            this.yValues = yValues;
-        }
     }
 }
 

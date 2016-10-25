@@ -56,8 +56,6 @@ public abstract class AbstractTaskApp {
         new HistogramPlotter(xColName, yColName, countMap).plot();
     }
 
-    protected abstract Dataset<Row> transformToFeatures(Dataset<Row> data);
-
     protected void submit(List<Prediction> predictions){
         taskSubmitter.submit(predictions);
     }

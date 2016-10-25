@@ -46,9 +46,10 @@ public class App extends AbstractTaskApp{
 //        plotHistogram(students, "address", "pass");
 //        plotHistogram(students, "internet", "pass");
 
-        Dataset<Row> transformed = transformToFeatures(students);
+        RFormula formula = new RFormula().setFormula("pass ~ . - id");
+        RFormulaModel rFormulaModel = formula.fit(students);
+        Dataset<Row> transformed = rFormulaModel.transform(students);
         transformed.show();
-
         transformed.groupBy("pass").count().show();
 
         VectorIndexerModel featureIndexer = new VectorIndexer()
@@ -58,23 +59,28 @@ public class App extends AbstractTaskApp{
                 .fit(transformed);
 
         ChiSqSelectorModel chiSqSelectorModel = new ChiSqSelector()
-                .setNumTopFeatures(18)
+                .setNumTopFeatures(15)
                 .setFeaturesCol("features")
                 .setLabelCol("label")
                 .setOutputCol("selectedFeatures")
                 .fit(transformed);
 
+        ChiSqSelector chiSqSelector = new ChiSqSelector()
+                .setNumTopFeatures(20)
+                .setFeaturesCol("features")
+                .setLabelCol("label")
+                .setOutputCol("selectedFeatures");
 
-        Dataset<Row>[] split = transformed.randomSplit(new double[]{0.7, 0.3});
+        Dataset<Row>[] split = students.randomSplit(new double[]{0.7, 0.3});
         Dataset<Row> trainingSet = split[0];
         Dataset<Row> testSet = split[1];
 
         RandomForestClassifier rf = new RandomForestClassifier()
                 .setLabelCol("label")
-                .setFeaturesCol("selectedFeatures");
+                .setFeaturesCol("features");
 
         // Chain indexers and forest in a Pipeline
-        Pipeline pipeline = new Pipeline().setStages(new PipelineStage[]{chiSqSelectorModel, rf});
+        Pipeline pipeline = new Pipeline().setStages(new PipelineStage[]{formula, rf});
 
         // Train model. This also runs the indexers.
         PipelineModel model = pipeline.fit(trainingSet);
@@ -88,24 +94,18 @@ public class App extends AbstractTaskApp{
         System.out.println("Area under ROC: " + accuracy);
         System.out.println("Test Error : " + (1 - accuracy));
 
-       //submitTask(spark, model);
+       submitTask(spark, model);
     }
 
     private void submitTask(SparkSession spark, Model model) {
         Dataset<Row> testStudents = readFile(spark, STUDENT_SUBMISSION_PATH);
-        Dataset<Row> testTransformed = transformToFeatures(testStudents);
-        Dataset<Row> predictionSet = model.transform(testTransformed);
+        Dataset<Row> predictionSet = model.transform(testStudents);
         predictionSet.select("id", "prediction").show();
         List<Prediction> predictions = predictionSet.collectAsList().stream()
                 .map(row -> new Prediction(row.<Integer>getAs("id").toString(), row.<Double>getAs("prediction")))
                 .collect(Collectors.toList());
         submit(predictions);
 
-    }
-
-    protected Dataset<Row> transformToFeatures(Dataset<Row> data) {
-        RFormula formula = new RFormula().setFormula("pass ~ . - id");
-        return formula.fit(data).transform(data);
     }
 
     private Dataset<Row> readFile(SparkSession spark, String path) {

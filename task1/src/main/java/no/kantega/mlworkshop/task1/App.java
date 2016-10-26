@@ -5,96 +5,71 @@ import no.kantega.mlworkshop.Prediction;
 import org.apache.spark.SparkConf;
 import org.apache.spark.ml.Model;
 import org.apache.spark.ml.Pipeline;
-import org.apache.spark.ml.PipelineModel;
-import org.apache.spark.ml.PipelineStage;
-import org.apache.spark.ml.classification.RandomForestClassifier;
-import org.apache.spark.ml.evaluation.BinaryClassificationEvaluator;
-import org.apache.spark.ml.feature.*;
+import org.apache.spark.ml.classification.Classifier;
+import org.apache.spark.ml.evaluation.Evaluator;
+import org.apache.spark.ml.feature.RFormula;
+import org.apache.spark.ml.tuning.TrainValidationSplit;
+import org.apache.spark.ml.tuning.TrainValidationSplitModel;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 
-import java.io.FileNotFoundException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class App extends AbstractTaskApp{
+public class App extends AbstractTaskApp {
 
     private static final String STUDENT_DATA_PATH = "student.csv";
     private static final String STUDENT_SUBMISSION_PATH = "student-submission.csv";
 
-    public static void main(String[] args) throws FileNotFoundException, IllegalAccessException, InstantiationException {
+    public static void main(String[] args) {
         App app = new App();
         app.run();
     }
 
     private void run() {
-
-        // les inn fil
-       //File file = readData(STUDENT_DATA_PATH);
-
+        // starter lokal spark
         SparkConf conf = new SparkConf().setAppName("ML").setMaster("local[*]");
         SparkSession spark = SparkSession.builder().appName("ML student").config(conf).getOrCreate();
 
-        //System.out.println("datapath: " + dataPath);
-        Dataset<Row> students = readFile(spark, STUDENT_DATA_PATH);
-        students.show();
+        // TODO 1.1: les inn csv fil som dataset, se på metoden readFile
+        Dataset<Row> students; // = ??
 
-//        plotFeatures(students, "pass", "age");
-//        plotHistogram(students, "age", "pass");
-//        plotHistogram(students, "alc", "pass");
-//        plotHistogram(students, "address", "pass");
-//        plotHistogram(students, "internet", "pass");
 
-        RFormula formula = new RFormula().setFormula("pass ~ . - id");
-        RFormulaModel rFormulaModel = formula.fit(students);
-        Dataset<Row> transformed = rFormulaModel.transform(students);
-        transformed.show();
-        transformed.groupBy("pass").count().show();
+        // TODO 1.2: Se på dataene, tegn diagrammer. Hvilke egenskaper har betydning for om man består eksamen,
+        // hvilke ser ikke ut til å ha noe å si for resultatet
+        // plotHistogram(students, "age", "pass");
 
-        VectorIndexerModel featureIndexer = new VectorIndexer()
-                .setInputCol("features")
-                .setOutputCol("indexedFeatures")
-                .setMaxCategories(6)
-                .fit(transformed);
 
-        ChiSqSelectorModel chiSqSelectorModel = new ChiSqSelector()
-                .setNumTopFeatures(15)
-                .setFeaturesCol("features")
-                .setLabelCol("label")
-                .setOutputCol("selectedFeatures")
-                .fit(transformed);
+        // TODO 1.3: Del datasettet inn i "label" med "pass"-verdien og vektor "features" med de egenskapene du vil ha med
+        // Pass på at "id" ikke blir med i features
+        RFormula formula; // = new RFormula().setFormula(/* fyll ut her */);
 
-        ChiSqSelector chiSqSelector = new ChiSqSelector()
-                .setNumTopFeatures(20)
-                .setFeaturesCol("features")
-                .setLabelCol("label")
-                .setOutputCol("selectedFeatures");
 
-        Dataset<Row>[] split = students.randomSplit(new double[]{0.7, 0.3});
-        Dataset<Row> trainingSet = split[0];
-        Dataset<Row> testSet = split[1];
+        // TODO 2.1: Sett opp en classifer. For eksempel RandomForestClassifer eller LogisticRegressionClassifier
+        Classifier classifier;
 
-        RandomForestClassifier rf = new RandomForestClassifier()
-                .setLabelCol("label")
-                .setFeaturesCol("features");
+        // TODO 2.2 Sett formula og classifier sammen i en pipeline
+        Pipeline pipeline;
 
-        // Chain indexers and forest in a Pipeline
-        Pipeline pipeline = new Pipeline().setStages(new PipelineStage[]{formula, rf});
+        // TODO 2.3. Del datasettet i treningsdata og testdata. Modellen trenes med treningssettet og testes med testsettet
+        TrainValidationSplit trainValidationSplit; // = ??
 
-        // Train model. This also runs the indexers.
-        PipelineModel model = pipeline.fit(trainingSet);
+        // TODO 2.4 Tren validatoren med treningssettet
+        TrainValidationSplitModel model; // = ??
 
-        // Make predictions.
-        Dataset<Row> predictions = model.transform(testSet);
-        predictions.show();
+        // TODO 2.5 Få modellen til å predikere bestått/ikke bestått
+        Dataset<Row> predictions ; // ??
 
-        BinaryClassificationEvaluator evaluator = new BinaryClassificationEvaluator();
-        double accuracy = evaluator.evaluate(predictions);
-        System.out.println("Area under ROC: " + accuracy);
-        System.out.println("Test Error : " + (1 - accuracy));
+        // TODO 2.5 Undersøk resultatet av prediksjonene for testdataene
+        Evaluator evaluator; // = model.getEvaluator();
+        double accuracy;  // =
 
-       submitTask(spark, model);
+        // TODO 3.1 Oppdater verdiene i klassen SubmissionProperties i common-modulen
+        // TODO 3.2 Send inn resultatet av modellen din
+        //submitTask(spark, model);
+
+        // TODO 4 Forbedre resultatet!
     }
 
     private void submitTask(SparkSession spark, Model model) {

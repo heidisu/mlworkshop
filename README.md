@@ -9,5 +9,5 @@ For å jobbe med oppgavene i prosjektet trenger du
 * java 8
 * Maven
 * Helst en IDE, feks IntelliJ
-* For å bruke sumbit-funksjonaliteten må man kjenne til en kjørende server for dette formålet
+* For å bruke submit-funksjonaliteten må man kjenne til en kjørende server for dette formålet
 

@@ -24,7 +24,7 @@ public class ScatterPlotter extends AbstractPlotter<XYChart>{
         // Customize Chart
         chart.getStyler().setDefaultSeriesRenderStyle(XYSeries.XYSeriesRenderStyle.Scatter);
         chart.getStyler().setChartTitleVisible(false);
-        chart.getStyler().setLegendPosition(Styler.LegendPosition.InsideSW);
+        chart.getStyler().setLegendPosition(Styler.LegendPosition.OutsideE);
         chart.getStyler().setMarkerSize(10);
         if(colors != null) {
             chart.getStyler().setSeriesColors((Color[]) colors.toArray());

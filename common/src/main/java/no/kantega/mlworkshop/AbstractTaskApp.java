@@ -36,21 +36,21 @@ public abstract class AbstractTaskApp {
 
     protected void plotHistogram(Dataset<Row> rows, String xColName, String yColName){
         Dataset<Row> groupedDataSet = rows.groupBy(xColName, yColName).count().sort(xColName, yColName);
-        List<Double> possibleValues = groupedDataSet.collectAsList().stream().map(r -> Double.valueOf(r.<Integer>getAs(xColName))).collect(Collectors.toList());
+        List<Double> possibleValues = groupedDataSet.collectAsList().stream().map(r -> r.<Number>getAs(xColName).doubleValue()).collect(Collectors.toList());
 
         Map<String, Map<Double, Double>> countMap = new TreeMap<>();
         List<Row> sortedRows = groupedDataSet.collectAsList();
         for(Row r : sortedRows){
-            String pass = r.<Integer>getAs(yColName).toString();
-            double age = r.<Integer>getAs(xColName);
-            double val = r.<Long>getAs("count");
-            Map<Double, Double> ageCount = countMap.computeIfAbsent(pass, i ->
+            String yName = r.<Number>getAs(yColName).toString();
+            double xVal = r.<Number>getAs(xColName).doubleValue();
+            double count = r.<Long>getAs("count");
+            Map<Double, Double> countMapAllValues = countMap.computeIfAbsent(yName, i ->
             {
                 Map<Double, Double> initialized = new TreeMap<>();
                 possibleValues.forEach( v -> initialized.put(v, 0.0));
                 return initialized;
             });
-            ageCount.put(age, val);
+            countMapAllValues.put(xVal, count);
         }
 
         new HistogramPlotter(xColName, yColName, countMap).plot();

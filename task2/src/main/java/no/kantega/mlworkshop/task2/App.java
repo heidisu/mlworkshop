@@ -21,7 +21,6 @@ import javafx.scene.transform.Transform;
 import javafx.stage.Stage;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -96,6 +95,7 @@ public class App extends Application
         labelButton.setOnAction( e -> {
             int number = Integer.parseInt(numberField.getCharacters().toString());
             addTrainingSample(canvas, number);
+            clear(canvas);
         });
 
         Button clearButton = new Button("Clear");

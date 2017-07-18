@@ -4,25 +4,17 @@ import no.kantega.mlworkshop.AbstractTaskApp;
 import org.apache.spark.SparkConf;
 import org.apache.spark.ml.Pipeline;
 import org.apache.spark.ml.PipelineModel;
-import org.apache.spark.ml.PipelineStage;
 import org.apache.spark.ml.classification.MultilayerPerceptronClassifier;
 import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator;
-import org.apache.spark.ml.feature.RFormula;
 import org.apache.spark.ml.param.ParamMap;
-import org.apache.spark.ml.tuning.CrossValidator;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
-import org.apache.spark.sql.RowFactory;
 import org.apache.spark.sql.SparkSession;
-import org.apache.spark.sql.types.DataTypes;
-import org.apache.spark.sql.types.StructField;
-import org.apache.spark.sql.types.StructType;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Random;
 
@@ -37,10 +29,14 @@ class SparkApp extends AbstractTaskApp {
 
     SparkApp() {
         SparkConf conf = new SparkConf().setAppName("ML").setMaster("local[*]");
-        sparkSession = SparkSession.builder().appName("ML student").config(conf).getOrCreate();
+        sparkSession = SparkSession.builder().appName("ML numbers").config(conf).getOrCreate();
         file = new File(FILE);
         if(!file.exists()){
-            createTempFile(FILE);
+            try {
+                Files.createFile(Paths.get(FILE));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 

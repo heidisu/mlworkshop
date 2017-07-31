@@ -12,7 +12,7 @@ import java.io.IOException;
 import java.util.List;
 
 public class TaskSubmitter {
-    private String servicePath = String.format("http://%s:3000/application/submissions/1", SubmissionProperties.SERVER);
+    private String servicePath = String.format("%s/submissions/1", SubmissionProperties.SERVICE_ROOT);
     private HttpClient httpClient;
     private HttpPost task1Post = new HttpPost(servicePath);
     private Gson gson = new Gson();

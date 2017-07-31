@@ -52,18 +52,23 @@ public class App extends AbstractTaskApp {
         // TODO 2.2 Sett formula og classifier sammen i en pipeline
         Pipeline pipeline;
 
-        // TODO 2.3. Del datasettet i treningsdata og testdata. Modellen trenes med treningssettet og testes med testsettet
+        // TODO 2.3. Del datasettet i treningsdata og testdata. Modellen trenes med treningssettet og testes til slutt med testsettet
+        Dataset<Row> splits; // = ??
+        Dataset<Row> training;
+        Dataset<Row> test;
+
+        // TODO 2.4 Sett opp en model selection, enten med cross validation eller med train validation
         TrainValidationSplit trainValidationSplit; // = ??
 
-        // TODO 2.4 Tren validatoren med treningssettet
+        // TODO 2.5 Tren validatoren med treningssettet
         TrainValidationSplitModel model; // = ??
 
-        // TODO 2.5 Få modellen til å predikere bestått/ikke bestått
-        Dataset<Row> predictions ; // ??
+        // TODO 2.6 Få modellen til å predikere bestått/ikke bestått
+        Dataset<Row> predictions; // ??
 
-        // TODO 2.5 Undersøk resultatet av prediksjonene for testdataene
+        // TODO 2.7 Undersøk resultatet av prediksjonene for testdataene
         Evaluator evaluator; // = model.getEvaluator();
-        double accuracy;  // =
+        double accuracy;  // = ??
 
         // TODO 3.1 Oppdater verdiene i klassen SubmissionProperties i common-modulen
         // TODO 3.2 Send inn resultatet av modellen din

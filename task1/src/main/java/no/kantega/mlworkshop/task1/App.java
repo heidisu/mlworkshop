@@ -1,7 +1,7 @@
 package no.kantega.mlworkshop.task1;
 
 import no.kantega.mlworkshop.AbstractTaskApp;
-import no.kantega.mlworkshop.Prediction;
+import no.kantega.mlworkshop.submission.Prediction;
 import org.apache.spark.SparkConf;
 import org.apache.spark.ml.Model;
 import org.apache.spark.ml.Pipeline;
@@ -22,8 +22,12 @@ public class App extends AbstractTaskApp {
     private static final String STUDENT_DATA_PATH = "student.csv";
     private static final String STUDENT_SUBMISSION_PATH = "student-submission.csv";
 
+    public App(int taskId) {
+        super(taskId);
+    }
+
     public static void main(String[] args) {
-        App app = new App();
+        App app = new App(1);
         app.run();
     }
 

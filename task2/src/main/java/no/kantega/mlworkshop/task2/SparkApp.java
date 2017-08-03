@@ -1,6 +1,8 @@
 package no.kantega.mlworkshop.task2;
 
 import no.kantega.mlworkshop.AbstractTaskApp;
+import no.kantega.mlworkshop.submission.Prediction;
+import no.kantega.mlworkshop.submission.PredictionData;
 import org.apache.spark.SparkConf;
 import org.apache.spark.ml.Pipeline;
 import org.apache.spark.ml.PipelineModel;
@@ -17,6 +19,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 import static java.nio.file.StandardOpenOption.APPEND;
 
@@ -27,7 +30,8 @@ class SparkApp extends AbstractTaskApp {
     static final int IMAGE_SIDE = 50;
     private static final String FILE = "numbers.csv";
 
-    SparkApp() {
+    SparkApp(int taskId) {
+        super(taskId);
         SparkConf conf = new SparkConf().setAppName("ML").setMaster("local[*]");
         sparkSession = SparkSession.builder().appName("ML numbers").config(conf).getOrCreate();
         file = new File(FILE);
@@ -89,8 +93,11 @@ class SparkApp extends AbstractTaskApp {
     }
 
     void evaluateModel() {
-        // get dataset
-        // map verder
-        //submit();
+        List<PredictionData> predictionData = getData();
+        List<Prediction> predictions = predictionData
+                .stream()
+                .map(pd -> new Prediction(pd.getId(), predict(pd.getData())))
+                .collect(Collectors.toList());
+        submit(predictions);
     }
 }

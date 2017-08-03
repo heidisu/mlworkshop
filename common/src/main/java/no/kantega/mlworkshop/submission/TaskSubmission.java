@@ -1,4 +1,4 @@
-package no.kantega.mlworkshop;
+package no.kantega.mlworkshop.submission;
 
 import java.util.List;
 

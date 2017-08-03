@@ -2,6 +2,7 @@ package no.kantega.mlworkshop.task2;
 
 import javafx.application.Application;
 import javafx.event.ActionEvent;
+import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.canvas.Canvas;
@@ -32,7 +33,7 @@ public class App extends Application
     private static double SCALE_FACTOR = 1.0/IMAGE_FACTOR;
 
     public static void main(String[] args) throws IOException {
-        sparkApp = new SparkApp();
+        sparkApp = new SparkApp(2);
         launch(args);
     }
 
@@ -56,7 +57,7 @@ public class App extends Application
 
         Label predictionLabel = new Label();
         predictionLabel.setId("predictionLabel");
-        Button predictionButton = new Button("Predict");
+        Button predictionButton = new Button("Gjett!");
         predictionButton.setOnAction((ActionEvent event) -> {
             predictionLabel.setText("");
             WritableImage img = new WritableImage(SparkApp.IMAGE_SIDE, SparkApp.IMAGE_SIDE);
@@ -98,7 +99,7 @@ public class App extends Application
             clear(canvas);
         });
 
-        Button clearButton = new Button("Clear");
+        Button clearButton = new Button("Tøm");
         clearButton.setOnAction(
                 event -> {
                     clear(canvas);

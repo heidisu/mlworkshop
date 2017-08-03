@@ -1,4 +1,4 @@
-package no.kantega.mlworkshop;
+package no.kantega.mlworkshop.submission;
 
 public class Prediction {
     private String id;

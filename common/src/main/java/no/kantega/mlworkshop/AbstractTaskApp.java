@@ -3,6 +3,9 @@ package no.kantega.mlworkshop;
 import no.kantega.mlworkshop.plotters.HistogramPlotter;
 import no.kantega.mlworkshop.plotters.ScatterPlotter;
 import no.kantega.mlworkshop.plotters.Series;
+import no.kantega.mlworkshop.submission.Prediction;
+import no.kantega.mlworkshop.submission.PredictionData;
+import no.kantega.mlworkshop.submission.TaskSubmitter;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 
@@ -17,8 +20,8 @@ import java.util.stream.Collectors;
 public abstract class AbstractTaskApp {
     private TaskSubmitter taskSubmitter;
 
-    public AbstractTaskApp(){
-        this.taskSubmitter = new TaskSubmitter();
+    public AbstractTaskApp(int taskId){
+        this.taskSubmitter = new TaskSubmitter(taskId);
     }
 
     protected void plotFeatures(Dataset<Row> rows, String xColName, String yColName) {
@@ -58,6 +61,10 @@ public abstract class AbstractTaskApp {
 
     protected void submit(List<Prediction> predictions){
         taskSubmitter.submit(predictions);
+    }
+
+    protected List<PredictionData> getData() {
+        return taskSubmitter.getPredictionData();
     }
 
     protected void createTempFile(String path) {

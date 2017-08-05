@@ -23,12 +23,13 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class App extends Application
 {
     private static SparkApp sparkApp;
-    private static final int IMAGE_FACTOR = 4;
+    private static final int IMAGE_FACTOR = 8;
     private static final int SIDE_LENGTH= SparkApp.IMAGE_SIDE * IMAGE_FACTOR;
     private static double SCALE_FACTOR = 1.0/IMAGE_FACTOR;
 
@@ -86,7 +87,7 @@ public class App extends Application
                 }
             }
 
-            int number =  sparkApp.predict(numbers);
+            int number =  sparkApp.predict(Collections.singletonList(numbers)).get(0).intValue();
             predictionLabel.setText("Tallet er: " + number);
         });
 
@@ -103,6 +104,7 @@ public class App extends Application
         clearButton.setOnAction(
                 event -> {
                     clear(canvas);
+                    predictionLabel.setText("");
                 }
         );
 
@@ -110,6 +112,7 @@ public class App extends Application
         Button retrainButton = new Button("Retrain");
         retrainButton.setOnAction(
                 event -> {
+                    trainingLabel.setText("");
                     String trainingResult = sparkApp.trainModel();
                     trainingLabel.setText(trainingResult);
                 }
@@ -127,19 +130,19 @@ public class App extends Application
         predictionBox.getChildren().add(predictionLabel);
         vbox.getChildren().add(predictionBox);
         vbox.getChildren().add(clearButton);
-        vbox.getChildren().add(new Separator());
+        Separator separator = new Separator();
+        separator.setStyle("-fx-padding: 20 0 10 0;");
+        vbox.getChildren().add(separator);
         HBox hbox = new HBox();
         hbox.setSpacing(5);
         hbox.getChildren().add(numberField);
         hbox.getChildren().add(labelButton);
         vbox.getChildren().add(hbox);
-        vbox.getChildren().add(new Separator());
         HBox trainingBox = new HBox();
         trainingBox.setSpacing(5);
         trainingBox.getChildren().add(retrainButton);
         trainingBox.getChildren().add(trainingLabel);
         vbox.getChildren().add(trainingBox);
-        vbox.getChildren().add(new Separator());
         vbox.getChildren().add(submitButton);
         Scene scene = new Scene(vbox, SIDE_LENGTH, 400);
         primaryStage.setTitle("Tall");
@@ -160,7 +163,7 @@ public class App extends Application
                 canvasHeight);  //height of the rectangle
 
         gc.setStroke(Color.BLUE);
-        gc.setLineWidth(5);
+        gc.setLineWidth(10);
 
     }
 

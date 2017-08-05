@@ -17,6 +17,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -27,7 +29,7 @@ class SparkApp extends AbstractTaskApp {
     private SparkSession sparkSession;
     private PipelineModel model;
     private File file;
-    static final int IMAGE_SIDE = 50;
+    static final int IMAGE_SIDE = 25;
     private static final String FILE = "numbers.csv";
 
     SparkApp(int taskId) {
@@ -44,6 +46,11 @@ class SparkApp extends AbstractTaskApp {
         }
     }
 
+    /**
+     * Trener modell fra fila med tall.
+     *
+     * @return Streng som beskriver nøyaktigheten til modellen
+     */
     String trainModel() {
         Dataset<Row> numbers = readCsvFile(sparkSession);
 
@@ -78,14 +85,21 @@ class SparkApp extends AbstractTaskApp {
                 .load(FILE);
     }
 
-    int predict(List<Double> numbers) {
+    /**
+     * Metode som tar inn en liste av tallbilder, der et tall er representert som en lista av 0 og 1, og predikerer hva
+     * slags siffer som er på bildet. Metoden returnerer en liste av prediksjoner, i samme rekkefølge som bildene.
+     *
+     * @param numbers En liste av tallbilder
+     * @return en liste av prediksjoner
+     */
+    List<Double> predict(List<List<Double>> numbers) {
 
         // TODO Gjør om listen av tall til Dataset<Row> med samme form som treningssettet
-        Dataset<Row> image;
+        Dataset<Row> images;
 
         // TODO Bruk den trente modellen til å predikere hva slags tall det er bilde av
         Double prediction = new Random().nextDouble()* 10;
-        return prediction.intValue();
+        return Collections.singletonList(prediction);
     }
 
     void addTrainingSample(String line) throws IOException {
@@ -94,10 +108,12 @@ class SparkApp extends AbstractTaskApp {
 
     void evaluateModel() {
         List<PredictionData> predictionData = getData();
-        List<Prediction> predictions = predictionData
-                .stream()
-                .map(pd -> new Prediction(pd.getId(), predict(pd.getData())))
-                .collect(Collectors.toList());
-        submit(predictions);
+        List<List<Double>> data = predictionData.stream().map(PredictionData::getData).collect(Collectors.toList());
+        List<Double> predictions = predict(data);
+        List<Prediction> submissionData = new ArrayList<>();
+        for(int i = 0; i < predictions.size(); i++){
+            submissionData.add(new Prediction(predictionData.get(i).getId(), predictions.get(i)));
+        }
+        submit(submissionData);
     }
 }

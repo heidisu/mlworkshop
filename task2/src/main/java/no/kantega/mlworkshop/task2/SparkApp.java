@@ -6,7 +6,7 @@ import no.kantega.mlworkshop.submission.PredictionData;
 import org.apache.spark.SparkConf;
 import org.apache.spark.ml.Pipeline;
 import org.apache.spark.ml.PipelineModel;
-import org.apache.spark.ml.classification.MultilayerPerceptronClassifier;
+import org.apache.spark.ml.classification.Classifier;
 import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator;
 import org.apache.spark.ml.param.ParamMap;
 import org.apache.spark.sql.Dataset;
@@ -54,16 +54,15 @@ class SparkApp extends AbstractTaskApp {
     String trainModel() {
         Dataset<Row> numbers = readCsvFile(sparkSession);
 
+        // TODO Lag en transformer som transformerer datasettet til å inneholde en kolonne med features og en kolonne med label
 
-        // TODO Transformer datasettet til å inneholde en kolonne med features og en kolonne med label
+        // TODO Sett opp en maskinlæringsmodell, feks logistic regression eller et nevralt nett
+        Classifier classifier;
 
-        // TODO Sett opp et nevralt nett
-        MultilayerPerceptronClassifier classifier;
-
-        // TODO Lag en pipeline med transformer og classifier
+        // TODO Lag en pipeline med transformer og modell
         Pipeline pipeline;
 
-        // TODO Lag en validator som validerer pipelinen og finner de beste parameterne for MultiLayerPerceptronClassifier
+        // TODO Lag en validator som validerer pipelinen og finner de beste parameterne
         ParamMap[] paramGrid;
         MulticlassClassificationEvaluator evaluator;
 
@@ -74,15 +73,6 @@ class SparkApp extends AbstractTaskApp {
         double accuracy = 0.0;
 
         return String.format("Score: %f", accuracy);
-    }
-
-    private Dataset<Row> readCsvFile(SparkSession spark) {
-        return spark.read()
-                .format("org.apache.spark.sql.execution.datasources.csv.CSVFileFormat")
-                .option("header", "false")
-                .option("inferSchema", "true")
-                .option("delimiter", ";")
-                .load(FILE);
     }
 
     /**
@@ -104,6 +94,15 @@ class SparkApp extends AbstractTaskApp {
 
     void addTrainingSample(String line) throws IOException {
         Files.write(file.toPath(), line.getBytes(), APPEND);
+    }
+
+    private Dataset<Row> readCsvFile(SparkSession spark) {
+        return spark.read()
+                .format("org.apache.spark.sql.execution.datasources.csv.CSVFileFormat")
+                .option("header", "false")
+                .option("inferSchema", "true")
+                .option("delimiter", ";")
+                .load(FILE);
     }
 
     void evaluateModel() {

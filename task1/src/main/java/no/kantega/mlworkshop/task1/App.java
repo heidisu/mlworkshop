@@ -20,7 +20,6 @@ import java.util.stream.Collectors;
 public class App extends AbstractTaskApp {
 
     private static final String STUDENT_DATA_PATH = "student.csv";
-    private static final String STUDENT_SUBMISSION_PATH = "student-submission.csv";
 
     public App(int taskId) {
         super(taskId);
@@ -82,7 +81,7 @@ public class App extends AbstractTaskApp {
     }
 
     private void submitTask(SparkSession spark, Model model) {
-        Dataset<Row> testStudents = readFile(spark, STUDENT_SUBMISSION_PATH);
+        Dataset<Row> testStudents = readFile(spark, "student-submission.csv");
         Dataset<Row> predictionSet = model.transform(testStudents);
         predictionSet.select("id", "prediction").show();
         List<Prediction> predictions = predictionSet.collectAsList().stream()

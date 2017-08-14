@@ -34,9 +34,17 @@ public class App extends AbstractTaskApp
 
         // TODO Transformer datasettet slik at det inneholder separate kolonner for år, måned, dag, time og ukedag
         // Kan få bruk for functions.unix_timestamp(bikeTrips.col(<kolonnenavn>), "yyyy-MM-dd HH:mm:ss").cast("timestamp")
+        // Finne ukedag er litt tricky, functions.date_format(bikeTrips.col(<timestampkolonne>), "u").cast("int")
 
 
-        // TODO Gjør en groupBy-operasjon sånn at du får antallet turer pr time
+        // TODO Gjør en groupBy-operasjon sånn at du får antall turer pr time
+
+        // TODO Hvilke kolonner av de du har nå tror du har betydning for antall sykkelturer i timen?
+        // Undersøk datasettet litt eller prøv å plotte med plotHistogram eller Lineplotter-klassen
+
+        // TODO Tren modell som passer med problemet du valgte
+
+        // TODO Er det data som du tror kan forbedre modellen?
 
     }
 

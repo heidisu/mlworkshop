@@ -24,6 +24,12 @@ public abstract class AbstractTaskApp {
         this.taskSubmitter = new TaskSubmitter(taskId);
     }
 
+    /**
+     * Plotter spredningsplot av to kolonner i et datasett
+     * @param rows datasett
+     * @param xColName navnet på kolonnen for x-verdier
+     * @param yColName navnet på kolonnen for y-verdier
+     */
     protected void plotFeatures(Dataset<Row> rows, String xColName, String yColName) {
         List<Double> xValues = new ArrayList<>();
         List<Double> yValues = new ArrayList<>();
@@ -37,6 +43,12 @@ public abstract class AbstractTaskApp {
         new ScatterPlotter(Collections.singletonList(series), null).plot();
     }
 
+    /**
+     * Plotter histogram/søylediagram for gitte kolonner i datasettet. Plotter for hver mulig x verdi søyler med antall for hver mulig y-verdi
+     * @param rows datasett
+     * @param xColName kolonnenavn for x-verdier
+     * @param yColName kolonnenavn for y-verider
+     */
     protected void plotHistogram(Dataset<Row> rows, String xColName, String yColName){
         Dataset<Row> groupedDataSet = rows.groupBy(xColName, yColName).count().sort(xColName, yColName);
         List<Double> possibleValues = groupedDataSet.collectAsList().stream().map(r -> r.<Number>getAs(xColName).doubleValue()).collect(Collectors.toList());

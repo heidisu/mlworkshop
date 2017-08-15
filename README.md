@@ -12,3 +12,5 @@ For å jobbe med oppgavene i prosjektet trenger du
 
 Windows-brukere kan møte på litt ekstra installasjon, se [her](https://jaceklaskowski.gitbooks.io/mastering-apache-spark/spark-tips-and-tricks-running-spark-windows.html) for tips til hva som gjøres.
 
+## Instruksjoner
+Gå til [mlworkshop.net](http://mlworkshop.net/) for instruksjoner til oppgavene, tips & triks og high scores.

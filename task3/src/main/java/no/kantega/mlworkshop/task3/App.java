@@ -29,7 +29,7 @@ public class App extends AbstractTaskApp
 
         // TODO: Last ned csv-filer om bysykkelturer fra https://developer.oslobysykkel.no/data og legg de i resources/
 
-        // TODO: Les inn filene i ett datasett og undersøk hvordan datasettet ser ut
+        // TODO: Les inn filene til ett datasett og undersøk hvordan datasettet ser ut. Metoden readCsvFile kan være nyttig
         Dataset<Row> trips;
 
         // TODO Transformer datasettet slik at det inneholder separate kolonner for år, måned, dag, time og ukedag

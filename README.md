@@ -9,5 +9,6 @@ For å jobbe med oppgavene i prosjektet trenger du
 * java 8
 * Maven
 * Helst en IDE, feks IntelliJ
-* For å bruke submit-funksjonaliteten må man kjenne til en kjørende server for dette formålet
+
+Windows-brukere kan møte på litt ekstra installasjon, se [her](https://jaceklaskowski.gitbooks.io/mastering-apache-spark/spark-tips-and-tricks-running-spark-windows.html) for tips til hva som gjøres.
 

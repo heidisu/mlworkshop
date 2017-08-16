@@ -56,7 +56,7 @@ public class App extends AbstractTaskApp {
         Pipeline pipeline;
 
         // TODO 2.3. Del datasettet i treningsdata og testdata. Modellen trenes med treningssettet og testes til slutt med testsettet
-        Dataset<Row> splits; // = ??
+        Dataset<Row>[] splits; // = ??
         Dataset<Row> training;
         Dataset<Row> test;
 

@@ -6,12 +6,16 @@ import no.kantega.mlworkshop.submission.PredictionData;
 import org.apache.spark.SparkConf;
 import org.apache.spark.ml.Pipeline;
 import org.apache.spark.ml.PipelineModel;
-import org.apache.spark.ml.classification.Classifier;
+import org.apache.spark.ml.Predictor;
 import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator;
+import org.apache.spark.ml.feature.RFormula;
 import org.apache.spark.ml.param.ParamMap;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.types.DataTypes;
+import org.apache.spark.sql.types.StructField;
+import org.apache.spark.sql.types.StructType;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,6 +35,16 @@ class SparkApp extends AbstractTaskApp {
     private File file;
     static final int IMAGE_SIDE = 25;
     private static final String FILE = "numbers.csv";
+    private static final StructType IMAGE_SCHEMA;
+    private static final StructType IMAGE_WITH_LABEL_SCHEMA;
+
+    static {
+        IMAGE_SCHEMA = DataTypes.createStructType(imageSchemaFields());
+        List<StructField> imageWithLabelFields = imageSchemaFields();
+        imageWithLabelFields.add(DataTypes.createStructField("label", DataTypes.DoubleType, true));
+        IMAGE_WITH_LABEL_SCHEMA = DataTypes.createStructType(imageWithLabelFields);
+    }
+
 
     SparkApp(int taskId) {
         super(taskId);
@@ -46,18 +60,28 @@ class SparkApp extends AbstractTaskApp {
         }
     }
 
+    private static List<StructField> imageSchemaFields() {
+        List<StructField> fields = new ArrayList<>();
+        for(int i = 0; i < IMAGE_SIDE * IMAGE_SIDE; i++){
+            StructField field = DataTypes.createStructField("pxl_" + i, DataTypes.DoubleType, true);
+            fields.add(field);
+        }
+        return fields;
+    }
+
     /**
      * Trener modell fra fila med tall.
      *
      * @return Streng som beskriver nøyaktigheten til modellen
      */
     String trainModel() {
-        Dataset<Row> numbers = readCsvFile(sparkSession);
+        Dataset<Row> numbers = readFile(sparkSession);
 
-        // TODO Lag en transformer som transformerer datasettet til å inneholde en kolonne med features og en kolonne med label
+        // TODO Sett opp RFormula så datasettet får en kolonne med features og en kolonne med label
+        RFormula formula;
 
-        // TODO Sett opp en maskinlæringsmodell, feks logistic regression eller et nevralt nett
-        Classifier classifier;
+        // TODO Sett opp en maskinlæringsalgoritme, feks LogisticRegression eller  MultilayerPerceptronClassifier (dvs nevralt nett)
+        Predictor classifier;
 
         // TODO Lag en pipeline med transformer og modell
         Pipeline pipeline;
@@ -96,12 +120,12 @@ class SparkApp extends AbstractTaskApp {
         Files.write(file.toPath(), line.getBytes(), APPEND);
     }
 
-    private Dataset<Row> readCsvFile(SparkSession spark) {
+    private Dataset<Row> readFile(SparkSession spark) {
         return spark.read()
                 .format("org.apache.spark.sql.execution.datasources.csv.CSVFileFormat")
                 .option("header", "false")
-                .option("inferSchema", "true")
                 .option("delimiter", ";")
+                .schema(IMAGE_WITH_LABEL_SCHEMA)
                 .load(FILE);
     }
 

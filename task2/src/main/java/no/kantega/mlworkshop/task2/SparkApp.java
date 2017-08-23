@@ -7,9 +7,8 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.ml.Pipeline;
 import org.apache.spark.ml.PipelineModel;
 import org.apache.spark.ml.Predictor;
-import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator;
+import org.apache.spark.ml.evaluation.Evaluator;
 import org.apache.spark.ml.feature.RFormula;
-import org.apache.spark.ml.param.ParamMap;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
@@ -77,23 +76,27 @@ class SparkApp extends AbstractTaskApp {
     String trainModel() {
         Dataset<Row> numbers = readFile(sparkSession);
 
-        // TODO Sett opp RFormula så datasettet får en kolonne med features og en kolonne med label
+        // TODO 2.1 Sett opp RFormula så datasettet får en kolonne med features og en kolonne med label
         RFormula formula;
 
-        // TODO Sett opp en maskinlæringsalgoritme, feks LogisticRegression eller  MultilayerPerceptronClassifier (dvs nevralt nett)
+        // TODO 2.2 Sett opp en maskinlæringsalgoritme, LogisticRegression eller  MultilayerPerceptronClassifier (dvs nevralt nett)
         Predictor classifier;
 
-        // TODO Lag en pipeline med transformer og modell
+        // TODO 2.3 Lag en pipeline med RFormula og modell
         Pipeline pipeline;
 
-        // TODO Lag en validator som validerer pipelinen og finner de beste parameterne
-        ParamMap[] paramGrid;
-        MulticlassClassificationEvaluator evaluator;
+        // TODO 2.4 Del datasettet i treningssett og testsett.
+        Dataset<Row>[] splits; // = ??
+        Dataset<Row> training; // = ??
+        Dataset<Row> test; // = ??
 
-        // TODO Kjør evaluatoren og finn den beste modellen
+        // TODO 2.5 Tren pipelinen med treningssettet
         // model = ?
 
-        // TODO Returner et tall som sier noen om hvor bra modellen var på treningsdataene
+        // TODO 2.6 Returner et tall som sier noen om hvor bra modellen var på testsdataene.
+        // Modellen vår gjør multi-klassifikasjon så evaluatoren vi vil bruke er MulticlassClassificationEvaluator.
+        Dataset<Row> predictions; // = ??
+        Evaluator evaluator; // = ??
         double accuracy = 0.0;
 
         return String.format("Score: %f", accuracy);

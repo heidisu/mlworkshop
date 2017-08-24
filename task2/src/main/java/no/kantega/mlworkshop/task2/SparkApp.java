@@ -111,10 +111,22 @@ class SparkApp extends AbstractTaskApp {
      */
     List<Double> predict(List<List<Double>> numbers) {
 
-        // TODO Gjør om listen av tall til Dataset<Row> med samme form som treningssettet
+        // TODO 3.1 Gjør om listen av tall til Dataset<Row> med samme form som treningssettet
+        // Først må List<List<Double>> konverteres til List<Row>.
+        // Bruk funksjonen RowFactory.create() med List.toArray() for å konvertere ett bilde List<Double> til Row
+        // Loop eller bruk stream og map for å konvertere hele settet
+        List<Row> rows; // = ??
+
+        // For å lage dataset må vi i tillegg til rows fortelle spark hva slags skjema datasettet skal ha
+        // Du kan du bruke sparkSession.sqlContext().createDataFrame() med rows og konstanten IMAGE_SCHEMA
         Dataset<Row> images;
 
-        // TODO Bruk den trente modellen til å predikere hva slags tall det er bilde av
+        // TODO 3.2 Bruk den trente modellen til å predikere hvilke tall det er bilde av
+        Dataset<Row> predictions; // = ??
+
+        // TODO 3.3 Returner en liste av prediksjoner
+        // return predictions.select("prediction").collectAsList().stream().map(row -> row.getDouble(0)).collect(Collectors.toList());
+
         Double prediction = new Random().nextDouble()* 10;
         return Collections.singletonList(prediction);
     }

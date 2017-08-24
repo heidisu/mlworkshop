@@ -27,17 +27,22 @@ public class App extends AbstractTaskApp
         SparkConf conf = new SparkConf().setAppName("ML").setMaster("local[*]");
         SparkSession spark = SparkSession.builder().appName("Bike").config(conf).getOrCreate();
 
-        // TODO: Last ned csv-filer om bysykkelturer fra https://developer.oslobysykkel.no/data og legg de i resources/
+        // TODO 1.1 Last ned csv-filer om bysykkelturer fra https://developer.oslobysykkel.no/data og legg de i resources/
 
-        // TODO: Les inn filene til ett datasett og undersøk hvordan datasettet ser ut. Metoden readCsvFile kan være nyttig
+        // TODO 1.2 Les inn filene til ett datasett og undersøk hvordan datasettet ser ut. Bruk metoden readCsvFile for å lese en fil
+        // For å sette sammen to datasett til ett kan du bruke dataset.union, loop eller bruk streams og map for å samle alle datasettene.
         Dataset<Row> trips;
 
-        // TODO Transformer datasettet slik at det inneholder separate kolonner for år, måned, dag, time og ukedag
-        // Kan få bruk for functions.unix_timestamp(bikeTrips.col(<kolonnenavn>), "yyyy-MM-dd HH:mm:ss").cast("timestamp")
+        // TODO 1.3 Legg til nye kolonner i datasetet for år, måned, dag, time og ukedag for starttidspunktet
+        // Bruk functions.unix_timestamp(bikeTrips.col(<kolonnenavn>), "yyyy-MM-dd HH:mm:ss").cast("timestamp") først for å få en timestamp fra starttidspunktet
         // Finne ukedag er litt tricky, functions.date_format(bikeTrips.col(<timestampkolonne>), "u").cast("int")
+        // For å finne år, måned, dag og time finnes det nyttige funksjoner functions.year(), functions.month() etc
+        // For å legge til kolonner i datasettet kan dataset.withColumn() brukes
 
 
-        // TODO Gjør en groupBy-operasjon sånn at du får antall turer pr time
+        // TODO 1.4 Gjør en groupBy-operasjon sånn at du får antall turer pr time
+        // Bruk dataset.groupBy().count() med kolonnene for år, måned, dag, ukedag og time
+        Dataset<Row> tripsPrHour; // = ??
 
         // TODO Hvilke kolonner av de du har nå tror du har betydning for antall sykkelturer i timen?
         // Undersøk datasettet litt eller prøv å plotte med plotHistogram eller Lineplotter-klassen

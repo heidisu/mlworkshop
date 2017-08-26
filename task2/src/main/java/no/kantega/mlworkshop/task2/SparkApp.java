@@ -6,11 +6,15 @@ import no.kantega.mlworkshop.submission.PredictionData;
 import org.apache.spark.SparkConf;
 import org.apache.spark.ml.Pipeline;
 import org.apache.spark.ml.PipelineModel;
+import org.apache.spark.ml.PipelineStage;
 import org.apache.spark.ml.Predictor;
+import org.apache.spark.ml.classification.MultilayerPerceptronClassifier;
 import org.apache.spark.ml.evaluation.Evaluator;
+import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator;
 import org.apache.spark.ml.feature.RFormula;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
+import org.apache.spark.sql.RowFactory;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
@@ -21,9 +25,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Random;
 import java.util.stream.Collectors;
 
 import static java.nio.file.StandardOpenOption.APPEND;
@@ -77,27 +79,28 @@ class SparkApp extends AbstractTaskApp {
         Dataset<Row> numbers = readFile(sparkSession);
 
         // TODO 2.1 Sett opp RFormula så datasettet får en kolonne med features og en kolonne med label
-        RFormula formula;
+        RFormula formula = new RFormula().setFormula("label ~ .");
 
         // TODO 2.2 Sett opp en maskinlæringsalgoritme, LogisticRegression eller  MultilayerPerceptronClassifier (dvs nevralt nett)
-        Predictor classifier;
+        Predictor classifier = new MultilayerPerceptronClassifier().setLayers(new int[]{625, 70, 10});
+        //classifier = new LogisticRegression();
 
         // TODO 2.3 Lag en pipeline med RFormula og modell
-        Pipeline pipeline;
+        Pipeline pipeline = new Pipeline().setStages(new PipelineStage[]{formula, classifier});
 
         // TODO 2.4 Del datasettet i treningssett og testsett.
-        Dataset<Row>[] splits; // = ??
-        Dataset<Row> training; // = ??
-        Dataset<Row> test; // = ??
+        Dataset<Row>[] splits= numbers.randomSplit(new double[]{0.7, 0.3});
+        Dataset<Row> training = splits[0];
+        Dataset<Row> test = splits[1];
 
         // TODO 2.5 Tren pipelinen med treningssettet
-        // model = ?
+        model = pipeline.fit(training);
 
         // TODO 2.6 Returner et tall som sier noen om hvor bra modellen var på testsdataene.
         // Modellen vår gjør multi-klassifikasjon så evaluatoren vi vil bruke er MulticlassClassificationEvaluator.
-        Dataset<Row> predictions; // = ??
-        Evaluator evaluator; // = ??
-        double accuracy = 0.0;
+        Dataset<Row> predictions = model.transform(test);
+        Evaluator evaluator = new MulticlassClassificationEvaluator();
+        double accuracy = evaluator.evaluate(predictions);
 
         return String.format("Score: %f", accuracy);
     }
@@ -115,20 +118,20 @@ class SparkApp extends AbstractTaskApp {
         // Først må List<List<Double>> konverteres til List<Row>.
         // Bruk funksjonen RowFactory.create() med List.toArray() for å konvertere ett bilde List<Double> til Row
         // Loop eller bruk stream og map for å konvertere hele settet
-        List<Row> rows; // = ??
+        List<Row> rows = numbers.stream().map(row -> RowFactory.create(row.toArray())).collect(Collectors.toList());
 
         // For å lage dataset må vi i tillegg til rows fortelle spark hva slags skjema datasettet skal ha
         // Du kan du bruke sparkSession.sqlContext().createDataFrame() med rows og konstanten IMAGE_SCHEMA
-        Dataset<Row> images;
+        Dataset<Row> images = sparkSession.sqlContext().createDataFrame(rows, IMAGE_SCHEMA);
 
         // TODO 3.2 Bruk den trente modellen til å predikere hvilke tall det er bilde av
-        Dataset<Row> predictions; // = ??
+        Dataset<Row> predictions = model.transform(images);
 
         // TODO 3.3 Returner en liste av prediksjoner
-        // return predictions.select("prediction").collectAsList().stream().map(row -> row.getDouble(0)).collect(Collectors.toList());
+        return predictions.select("prediction").collectAsList().stream().map(row -> row.getDouble(0)).collect(Collectors.toList());
 
-        Double prediction = new Random().nextDouble()* 10;
-        return Collections.singletonList(prediction);
+        //Double prediction = new Random().nextDouble()* 10;
+        //return Collections.singletonList(prediction);
     }
 
     void addTrainingSample(String line) throws IOException {

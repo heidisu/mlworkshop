@@ -6,8 +6,12 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.ml.Model;
 import org.apache.spark.ml.Pipeline;
 import org.apache.spark.ml.PipelineModel;
+import org.apache.spark.ml.PipelineStage;
 import org.apache.spark.ml.classification.Classifier;
+import org.apache.spark.ml.classification.RandomForestClassifier;
+import org.apache.spark.ml.evaluation.BinaryClassificationEvaluator;
 import org.apache.spark.ml.evaluation.Evaluator;
+import org.apache.spark.ml.feature.ChiSqSelector;
 import org.apache.spark.ml.feature.RFormula;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
@@ -35,13 +39,13 @@ public class App extends AbstractTaskApp {
         SparkSession spark = SparkSession.builder().appName("ML student").config(conf).getOrCreate();
 
         // TODO 1.1: les inn csv-fila student.csv som dataset, se på metoden readFile()
-        Dataset<Row> students; // = ??
+        Dataset<Row> students = readFile(spark, STUDENT_DATA_PATH);
 
 
         // TODO 1.2: Se på dataene, tegn diagrammer. Hvilke egenskaper har betydning for om man består eksamen,
         // hvilke ser ikke ut til å ha noe å si for resultatet?
         // plotHistogram(students, "age", "pass");
-
+        plotHistogram(students, "age", "pass");
 
         // TODO 1.3: Del datasettet inn i kolonne "label" med "pass"-verdien
         // og kolonne "features" med vektorform av de egenskapene du vil ha med.
@@ -51,30 +55,33 @@ public class App extends AbstractTaskApp {
         // Når rformula brukes på et datasett vil datasettet få en ny kolonne label som inneholder feltet før ~ og
         // en kolonne features som inneholder en vektor med feltene bestemt av uttrykket etter ~.
         // For å teste resultatet kan du gjøre formula.fit(students).transform(students).show().
-        RFormula formula; // = new RFormula().setFormula(/* fyll ut her */);
+        RFormula formula = new RFormula().setFormula("pass ~ . - id");
+        formula.fit(students).transform(students).show();
 
         // TODO 2.1: Sett opp en classifer (= maskinlæringsalgoritme). Bruk RandomForestClassifer eller LogisticRegression
-        Classifier classifier;
+        Classifier classifier = new RandomForestClassifier();
 
         // TODO 2.2 Sett formula og classifier sammen i en pipeline. Bruk pipeline.setStages for å sette at trinnene skal
         // være formula først og classifier etterpå
-        Pipeline pipeline;
+        Pipeline pipeline = new Pipeline().setStages(new PipelineStage[]{formula, classifier});
 
         // TODO 2.3. Del datasettet i treningssett og testsett. Modellen trenes med treningssettet og testes til slutt med testsettet
-        Dataset<Row>[] splits; // = ??
-        Dataset<Row> training; // = ??
-        Dataset<Row> test; // = ??
+        Dataset<Row>[] splits = students.randomSplit(new double[]{0.7, 0.3});
+        Dataset<Row> training = splits[0];
+        Dataset<Row> test = splits[1];
 
         // TODO 2.4 Tren pipelinen med treningssettet ved å bruke metoden pipeline.fit
-        PipelineModel model; // = ??
+        PipelineModel model = pipeline.fit(training);
 
         // TODO 2.5 Få modellen til å predikere bestått/ikke bestått ved å bruke metoden model.transform
-        Dataset<Row> predictions; // = ??
+        Dataset<Row> predictions = model.transform(test);
 
         // TODO 2.6 Undersøk resultatet av prediksjonene for testdataene ved å lage en evaluator. Vi har en binær klassifikasjon, så
         // lag en BinaryClassificationEvaluator, og få ut et tall på nøyaktigheten ved å bruke metoden evaluate
-        Evaluator evaluator; // = ??
-        double accuracy; // = evaluator.evaluate()
+        Evaluator evaluator = new BinaryClassificationEvaluator();
+        double accuracy = evaluator.evaluate(predictions);
+
+        System.out.println("Accuracy: " + accuracy);
 
         // TODO 3.1 Oppdater verdiene i klassen SubmissionProperties i common-modulen
         // TODO 3.2 Send inn resultatet av modellen din
@@ -85,6 +92,11 @@ public class App extends AbstractTaskApp {
         // Les om hvordan ChiSqSelector kan brukes til å finne de viktigste feltene
         // https://spark.apache.org/docs/latest/ml-features.html#chisqselector
         // Du kan også teste å bytte ut maskinlæringsmodellen med den du ikke brukte i 2.1, blir det forskjell på resultatet?
+        ChiSqSelector selector = new ChiSqSelector().setNumTopFeatures(4).setOutputCol("selFeatures");
+        Classifier classifier2 = new RandomForestClassifier().setFeaturesCol("selFeatures");
+        Pipeline pipeline2 = new Pipeline().setStages(new PipelineStage[]{formula, selector, classifier2});
+        Model model2 = pipeline2.fit(training);
+        System.out.println("Accuracy: " + new BinaryClassificationEvaluator().evaluate(model2.transform(test)));
     }
 
     private void submitTask(SparkSession spark, Model model) {

@@ -41,7 +41,6 @@ public class App extends AbstractTaskApp {
         // TODO 1.1: les inn csv-fila student.csv som dataset, se på metoden readFile()
         Dataset<Row> students = readFile(spark, STUDENT_DATA_PATH);
 
-
         // TODO 1.2: Se på dataene, tegn diagrammer. Hvilke egenskaper har betydning for om man består eksamen,
         // hvilke ser ikke ut til å ha noe å si for resultatet?
         // plotHistogram(students, "age", "pass");
@@ -66,6 +65,7 @@ public class App extends AbstractTaskApp {
         Pipeline pipeline = new Pipeline().setStages(new PipelineStage[]{formula, classifier});
 
         // TODO 2.3. Del datasettet i treningssett og testsett. Modellen trenes med treningssettet og testes til slutt med testsettet
+        // bruk dataset.randomSplit()
         Dataset<Row>[] splits = students.randomSplit(new double[]{0.7, 0.3});
         Dataset<Row> training = splits[0];
         Dataset<Row> test = splits[1];

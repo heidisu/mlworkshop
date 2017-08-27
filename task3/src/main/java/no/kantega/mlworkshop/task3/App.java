@@ -65,8 +65,8 @@ public class App extends AbstractTaskApp
         System.out.println(trips.count());
 
         // TODO 1.3 Legg til nye kolonner i datasetet for år, måned, dag, time og ukedag for starttidspunktet
-        // Bruk functions.unix_timestamp(bikeTrips.col(<kolonnenavn>), "yyyy-MM-dd HH:mm:ss").cast("timestamp") først for å få en timestamp fra starttidspunktet
-        // Finne ukedag er litt tricky, functions.date_format(bikeTrips.col(<timestampkolonne>), "u").cast("int")
+        // Bruk functions.unix_timestamp(trips.col(<kolonnenavn>), "yyyy-MM-dd HH:mm:ss").cast("timestamp") først for å få en timestamp fra starttidspunktet
+        // Finne ukedag er litt tricky, functions.date_format(trips.col(<timestampkolonne>), "u").cast("int")
         // For å finne år, måned, dag og time finnes det nyttige funksjoner functions.year(), functions.month() etc
         // For å legge til kolonner i datasettet kan dataset.withColumn() brukes
         trips = trips.withColumn("start_time", functions.unix_timestamp(trips.col("Start time"), "yyyy-MM-dd HH:mm:ss").cast("timestamp"));
@@ -85,6 +85,7 @@ public class App extends AbstractTaskApp
 
         // TODO Hvilke kolonner av de du har nå tror du har betydning for antall sykkelturer i timen eller rushtid?
         // Undersøk datasettet litt og prøv å plotte med plotTrips()
+        // Hvordan er forskjellen mellom ulike ukedager og ulike måneder?
         plotTrips(tripsPrHour, "year", "month", "day", "hour", "day_of_week", "count");
         Dataset<Row> weekends = tripsPrHour.where(tripsPrHour.col("day_of_week").isin(6,7));
         Dataset<Row> weekDays = tripsPrHour.where(tripsPrHour.col("day_of_week").isin(1,2,3,4,5));
@@ -115,7 +116,6 @@ public class App extends AbstractTaskApp
 
         Evaluator evaluator = new BinaryClassificationEvaluator();
         System.out.println("Random forest classifier accuracy: " + evaluator.evaluate(predictions));
-
 
 
         // ******* Antall turer pr time ************

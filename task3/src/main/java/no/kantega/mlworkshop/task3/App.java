@@ -95,7 +95,7 @@ public class App extends AbstractTaskApp
         // TODO Om du velger å se på når det er rushtid for syklene må du lage en kolonne som har verdien 1 om antallet er større eller lik 1000, 0 ellers.
         // Dette kan gjøres med withColumn, functions.when(, 1).otherwise(0), og column.geq()
         // Etter at du har fått denne kolonnen kan du også bruke plotHistogram med feks time eller ukedag, og den nye kolonnen.
-        Dataset<Row> categoryTrips = tripsPrHour.withColumn("label", functions.when(tripsPrHour.col("count").geq(1000), 1).otherwise(0));
+        Dataset<Row> categoryTrips = tripsPrHour.withColumn("over1000", functions.when(tripsPrHour.col("count").geq(1000), 1).otherwise(0));
 
         // TODO Tren modell som passer med problemet du valgte
         // Lage pipeline som i de tidligere oppgavene med RFormula og valgt maskinlæringsmodell
@@ -107,7 +107,7 @@ public class App extends AbstractTaskApp
         Dataset<Row> training = splits[0];
         Dataset<Row> test = splits[1];
 
-        RFormula formula = new RFormula().setFormula("label ~ month + day_of_week + hour");
+        RFormula formula = new RFormula().setFormula("over1000 ~ month + day_of_week + hour");
         RandomForestClassifier rf = new RandomForestClassifier();
 
         Pipeline pipeline = new Pipeline().setStages(new PipelineStage[]{formula, rf});
@@ -117,17 +117,16 @@ public class App extends AbstractTaskApp
         Evaluator evaluator = new BinaryClassificationEvaluator();
         System.out.println("Random forest classifier accuracy: " + evaluator.evaluate(predictions));
 
-
         // ******* Antall turer pr time ************
         RFormula regressionFormula = new RFormula().setFormula("count ~ month + day_of_week + hour ");
         Evaluator regressionEvaluator = new RegressionEvaluator();
 
         // Random forest
         RandomForestRegressor rfr = new RandomForestRegressor();
-        Pipeline pipeline2 = new Pipeline().setStages(new PipelineStage[]{regressionFormula, rfr});
-        PipelineModel model2 = pipeline2.fit(training);
-        Dataset<Row> predictions2 = model2.transform(test);
-        System.out.println("Random forest regressor accuracy: " + regressionEvaluator.evaluate(predictions2));
+        Pipeline rfrPipeline = new Pipeline().setStages(new PipelineStage[]{regressionFormula, rfr});
+        PipelineModel rfrModel = rfrPipeline.fit(training);
+        Dataset<Row> rfrPredictions = rfrModel.transform(test);
+        System.out.println("Random forest regressor accuracy: " + regressionEvaluator.evaluate(rfrPredictions));
 
         // Linear regression
         StandardScaler scaler = new StandardScaler()
@@ -150,11 +149,11 @@ public class App extends AbstractTaskApp
         linearRegression.setFeaturesCol("polyFeatures");
 
 
-        Pipeline pipeline3 = new Pipeline().setStages(
+        Pipeline lrPipeline = new Pipeline().setStages(
                 new PipelineStage[]{regressionFormula, scaler, normalizer, polyExpansion, linearRegression});
-        PipelineModel model3 = pipeline3.fit(training);
-        Dataset<Row> predictions3 = model3.transform(test);
-        System.out.println("Linear regression accuracy: " + regressionEvaluator.evaluate(predictions3));
+        PipelineModel lrModel = lrPipeline.fit(training);
+        Dataset<Row> lrPredictions = lrModel.transform(test);
+        System.out.println("Linear regression accuracy: " + regressionEvaluator.evaluate(lrPredictions));
 
 
         // TODO Er det andre data som du tror kan forbedre modellen?

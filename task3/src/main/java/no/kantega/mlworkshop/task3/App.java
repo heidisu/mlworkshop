@@ -3,12 +3,27 @@ package no.kantega.mlworkshop.task3;
 import no.kantega.mlworkshop.AbstractTaskApp;
 import no.kantega.mlworkshop.plotters.LinePlotter;
 import org.apache.spark.SparkConf;
+import org.apache.spark.ml.Pipeline;
+import org.apache.spark.ml.PipelineModel;
+import org.apache.spark.ml.PipelineStage;
+import org.apache.spark.ml.classification.RandomForestClassifier;
+import org.apache.spark.ml.evaluation.BinaryClassificationEvaluator;
+import org.apache.spark.ml.evaluation.Evaluator;
+import org.apache.spark.ml.evaluation.RegressionEvaluator;
+import org.apache.spark.ml.feature.Normalizer;
+import org.apache.spark.ml.feature.PolynomialExpansion;
+import org.apache.spark.ml.feature.RFormula;
+import org.apache.spark.ml.feature.StandardScaler;
+import org.apache.spark.ml.regression.LinearRegression;
+import org.apache.spark.ml.regression.RandomForestRegressor;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.functions;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -39,29 +54,108 @@ public class App extends AbstractTaskApp
 
         // TODO 1.2 Les inn filene til ett datasett og undersøk hvordan datasettet ser ut. Bruk metoden readCsvFile for å lese en fil
         // For å sette sammen to datasett til ett kan du bruke dataset.union, loop eller bruk streams og map for å samle alle datasettene.
-        Dataset<Row> trips;
+        List<String> filenames = Arrays.asList(
+                "trips-2016.8.1-2016.8.31.csv",
+                "trips-2016.9.1-2016.9.30.csv",
+                "trips-2016.10.1-2016.10.31.csv",
+                "trips-2016.11.1-2016.11.30.csv");
+
+        Dataset<Row> trips = filenames.stream().map(name -> readCsvFile(spark, name)).reduce(Dataset::union).get();
+        trips.show();
+        System.out.println(trips.count());
 
         // TODO 1.3 Legg til nye kolonner i datasetet for år, måned, dag, time og ukedag for starttidspunktet
         // Bruk functions.unix_timestamp(bikeTrips.col(<kolonnenavn>), "yyyy-MM-dd HH:mm:ss").cast("timestamp") først for å få en timestamp fra starttidspunktet
         // Finne ukedag er litt tricky, functions.date_format(bikeTrips.col(<timestampkolonne>), "u").cast("int")
         // For å finne år, måned, dag og time finnes det nyttige funksjoner functions.year(), functions.month() etc
         // For å legge til kolonner i datasettet kan dataset.withColumn() brukes
+        trips = trips.withColumn("start_time", functions.unix_timestamp(trips.col("Start time"), "yyyy-MM-dd HH:mm:ss").cast("timestamp"));
+        trips = trips.withColumn("year", functions.year(trips.col("start_time")))
+                .withColumn("month", functions.month(trips.col("start_time")))
+                .withColumn("day", functions.dayofmonth(trips.col("start_time")))
+                .withColumn("hour", functions.hour(trips.col("start_time")))
+                .withColumn("day_of_week", functions.date_format(trips.col("start_time"), "u").cast("int"));
+        trips.show();
 
 
         // TODO 1.4 Gjør en groupBy-operasjon sånn at du får antall turer pr time
         // Bruk dataset.groupBy().count() med kolonnene for år, måned, dag, ukedag og time
-        Dataset<Row> tripsPrHour; // = ??
+        Dataset<Row> tripsPrHour = trips.groupBy("year", "month", "day", "day_of_week", "hour").count();
+        tripsPrHour.show();
 
         // TODO Hvilke kolonner av de du har nå tror du har betydning for antall sykkelturer i timen eller rushtid?
         // Undersøk datasettet litt og prøv å plotte med plotTrips()
+        plotTrips(tripsPrHour, "year", "month", "day", "hour", "day_of_week", "count");
+        Dataset<Row> weekends = tripsPrHour.where(tripsPrHour.col("day_of_week").isin(6,7));
+        Dataset<Row> weekDays = tripsPrHour.where(tripsPrHour.col("day_of_week").isin(1,2,3,4,5));
+        plotTrips(weekends, "year", "month", "day", "hour", "day_of_week", "count");
+        plotTrips(weekDays, "year", "month", "day", "hour", "day_of_week", "count");
 
         // TODO Om du velger å se på når det er rushtid for syklene må du lage en kolonne som har verdien 1 om antallet er større eller lik 1000, 0 ellers.
         // Dette kan gjøres med withColumn, functions.when(, 1).otherwise(0), og column.geq()
         // Etter at du har fått denne kolonnen kan du også bruke plotHistogram med feks time eller ukedag, og den nye kolonnen.
+        Dataset<Row> categoryTrips = tripsPrHour.withColumn("label", functions.when(tripsPrHour.col("count").geq(1000), 1).otherwise(0));
 
         // TODO Tren modell som passer med problemet du valgte
         // Lage pipeline som i de tidligere oppgavene med RFormula og valgt maskinlæringsmodell
         // Se hvor bra modellen gjør det med testdata og se om det er noe med features eller valg modell som kan gjøre prediksjonene bedre
+
+
+        // ********* Rushtid *************
+        Dataset<Row>[] splits = categoryTrips.randomSplit(new double[]{0.7, 0.3});
+        Dataset<Row> training = splits[0];
+        Dataset<Row> test = splits[1];
+
+        RFormula formula = new RFormula().setFormula("label ~ month + day_of_week + hour");
+        RandomForestClassifier rf = new RandomForestClassifier();
+
+        Pipeline pipeline = new Pipeline().setStages(new PipelineStage[]{formula, rf});
+        PipelineModel model = pipeline.fit(training);
+        Dataset<Row> predictions = model.transform(test);
+
+        Evaluator evaluator = new BinaryClassificationEvaluator();
+        System.out.println("Random forest classifier accuracy: " + evaluator.evaluate(predictions));
+
+
+
+        // ******* Antall turer pr time ************
+        RFormula regressionFormula = new RFormula().setFormula("count ~ month + day_of_week + hour ");
+        Evaluator regressionEvaluator = new RegressionEvaluator();
+
+        // Random forest
+        RandomForestRegressor rfr = new RandomForestRegressor();
+        Pipeline pipeline2 = new Pipeline().setStages(new PipelineStage[]{regressionFormula, rfr});
+        PipelineModel model2 = pipeline2.fit(training);
+        Dataset<Row> predictions2 = model2.transform(test);
+        System.out.println("Random forest regressor accuracy: " + regressionEvaluator.evaluate(predictions2));
+
+        // Linear regression
+        StandardScaler scaler = new StandardScaler()
+                .setInputCol("features")
+                .setOutputCol("scaledFeatures")
+                .setWithStd(true)
+                .setWithMean(true);
+
+        Normalizer normalizer = new Normalizer()
+                .setInputCol("scaledFeatures")
+                .setOutputCol("normFeatures");
+
+        PolynomialExpansion polyExpansion = new PolynomialExpansion()
+                .setInputCol("normFeatures")
+                .setOutputCol("polyFeatures")
+                .setDegree(15);
+
+        LinearRegression linearRegression = new LinearRegression();
+        linearRegression.setFitIntercept(true);
+        linearRegression.setFeaturesCol("polyFeatures");
+
+
+        Pipeline pipeline3 = new Pipeline().setStages(
+                new PipelineStage[]{regressionFormula, scaler, normalizer, polyExpansion, linearRegression});
+        PipelineModel model3 = pipeline3.fit(training);
+        Dataset<Row> predictions3 = model3.transform(test);
+        System.out.println("Linear regression accuracy: " + regressionEvaluator.evaluate(predictions3));
+
 
         // TODO Er det andre data som du tror kan forbedre modellen?
     }

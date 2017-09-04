@@ -82,6 +82,7 @@ class SparkApp extends AbstractTaskApp {
         RFormula formula = new RFormula().setFormula("label ~ .");
 
         // TODO 2.2 Sett opp en maskinlæringsalgoritme, LogisticRegression eller  MultilayerPerceptronClassifier (dvs nevralt nett)
+        // Bytt ut "Predictor" med den med konkrete klassen du bruker
         Predictor classifier = new MultilayerPerceptronClassifier().setLayers(new int[]{625, 70, 10});
         //classifier = new LogisticRegression();
 

@@ -13,3 +13,10 @@ Windows-brukere kan møte på litt ekstra installasjon, se [her](https://jacekla
 
 ## Instruksjoner
 Gå til [mlworkshop.net](http://mlworkshop.net/) for instruksjoner til oppgavene, tips & triks og high scores.
+
+## Datasett
+I oppgave 1 brukes en litt omformet versjon av datasettet [Student Performance Data Set](http://archive.ics.uci.edu/ml/datasets/student+performance). 
+
+P. Cortez and A. Silva. Using Data Mining to Predict Secondary School Student Performance. In A. Brito and J. Teixeira Eds., Proceedings of 5th FUture BUsiness TEChnology Conference (FUBUTEC 2008) pp. 5-12, Porto, Portugal, April, 2008, EUROSIS, ISBN 978-9077381-39-7 [pdf](http://www3.dsi.uminho.pt/pcortez/student.pdf).
+
+Oppgave 3 baserer seg på åpne data fra Oslo bysykkel, som kan lastes ned [herfra](https://developer.oslobysykkel.no/data).

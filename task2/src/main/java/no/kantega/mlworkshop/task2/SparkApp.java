@@ -80,6 +80,7 @@ class SparkApp extends AbstractTaskApp {
         RFormula formula;
 
         // TODO 2.2 Sett opp en maskinlæringsalgoritme, LogisticRegression eller  MultilayerPerceptronClassifier (dvs nevralt nett)
+        // Bytt ut "Predictor" med den med konkrete klassen du bruker
         Predictor classifier;
 
         // TODO 2.3 Lag en pipeline med RFormula og modell
